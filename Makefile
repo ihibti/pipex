@@ -1,49 +1,62 @@
-LIBC =	ft_atoi.c ft_bzero.c ft_calloc.c ft_isalnum.c ft_isalpha.c \
-		ft_isascii.c ft_isdigit.c ft_isprint.c ft_memchr.c \
-		ft_memcmp.c ft_memcpy.c ft_memmove.c ft_memset.c ft_strchr.c \
-		ft_strdup.c ft_strlcat.c ft_strlcpy.c ft_strlen.c ft_strncmp.c \
-		ft_strnstr.c ft_strrchr.c ft_tolower.c ft_toupper.c ft_printf.c \
-		ft_printf_utils.c print_unsigned.c get_next_line.c get_next_line_utils.c
+# Compiler
+CC = cc
 
-ADDITIONAL =	ft_itoa.c ft_putchar_fd.c ft_putendl_fd.c ft_putnbr_fd.c ft_putstr_fd.c \
-				ft_split.c ft_strjoin.c ft_strmapi.c ft_strtrim.c ft_substr.c ft_striteri.c
+# Compilation flags
+CFLAGS = -g -Wall -Wextra -Werror 
 
-BONUS =	ft_lstadd_back.c ft_lstadd_front.c ft_lstclear.c \
-		ft_lstdelone.c ft_lstiter.c ft_lstlast.c \
-		ft_lstmap.c ft_lstnew.c ft_lstsize.c
+# Source files for PIPEX
+PIPEX_SRCS = src/pipex.c src/pipex_utils.c
+				 
 
-SRCS = ${LIBC} ${ADDITIONAL}
+# Object files for push_swap
+PIPEX_OBJS = $(PIPEX_SRCS:%.c=%.o)			
 
-SRCSALL = ${LIBC} ${ADDITIONAL} ${BONUS}
+# Object files for checker
+CHECKER_OBJS = $(CHECKER_SRCS:%.c=%.o)
 
-OBJS = ${SRCS:.c=.o}
+# Library name
+LIBFT_NAME = libft.a
 
-OBJSALL = ${SRCSALL:.c=.o} 
+# Path to libft
+LIBFT_DIR = libft
 
-LIB = libft.a
+# Flags for library inclusion
+LIBFT_INC = -I$(LIBFT_DIR)
+LIBFT_LINK = -L$(LIBFT_DIR) -lft
 
-CC = gcc
+# Name of the PIPEX executable
+PIPEX_NAME = pipex
 
-CFLAGS = -g -Wall -Werror -Wextra -I ./
+all: $(PIPEX_NAME)
 
-.c.o:
-		${CC} ${CFLAGS} -c  $< -o  ${<:.c=.o}
+# Rule to build the PIPEX executable
+$(PIPEX_NAME): $(PIPEX_OBJS) $(LIBFT_DIR)/$(LIBFT_NAME) 
+	$(CC) $(CFLAGS) $(LIBFT_INC) $^ -o $@
 
-${LIB}:	${OBJS}
-		ar -rsc ${LIB} ${OBJS}
 
-bonus:	${OBJSALL}
-		ar -rsc ${LIB} ${OBJSALL}
+# Rule to build object files for PIPEX
+%.o: %.c
+	$(CC) $(CFLAGS) $(LIBFT_INC) -c $< -o $@
 
-all: 	${LIB}
+# Rule to build libft
+$(LIBFT_DIR)/$(LIBFT_NAME):
+	$(MAKE) -C $(LIBFT_DIR)
 
-clean:	
-		rm -f ${OBJSALL}
+# Rule to clean object files for both PIPEX and checker
+clean:
+	rm -f $(PIPEX_OBJS) 
+	$(MAKE) -C $(LIBFT_DIR) clean
 
-fclean:	clean;
-		rm -f ${LIB}
-so:
-	$(CC) -nostartfiles -fPIC $(CFLAGS) $(SRCSALL)
-	gcc -nostartfiles -shared -o libft.so $(OBJSALL)
+# Rule to clean object files and executables for both PIPEX and checker
+fclean: clean
+	rm -f $(PIPEX_NAME) 
+	$(MAKE) -C $(LIBFT_DIR) fclean
 
-re:	fclean all
+# Rule to recompile everything
+re: fclean all
+
+
+
+
+
+.PHONY: all clean fclean re libft bonus
