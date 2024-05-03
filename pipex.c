@@ -6,7 +6,7 @@
 /*   By: ihibti <ihibti@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/27 20:24:39 by ihibti            #+#    #+#             */
-/*   Updated: 2024/03/19 13:09:13 by ihibti           ###   ########.fr       */
+/*   Updated: 2024/04/29 15:22:01 by ihibti           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,26 +14,27 @@
 
 int	main(int ac, char **av, char **env)
 {
-	char	**paths;
 	int		fd[2];
-	pid_t	id;
-	int		i;
-	int		poubelle;
+	pid_t	id[2];
 
-	poubelle = 2;
 	if (ac != 5)
 		return (printf("nombre d'arguments incorrect\n"), 1);
 	if (pipe(fd) == -1)
 		return (1);
-	id = fork();
-	if (id == -1)
+	id[0] = fork();
+	if (id[0] == -1)
 		return (close(fd[0]), close(fd[1]), 1);
-	if (id == 0)
+	if (id[0] == 0)
 		child(fd, env, av);
-	id = fork();
-	if (id == 0)
+	id[1] = fork();
+	if (id[1] == -1)
+		return (close(fd[0]), close(fd[1]), 1);
+	if (id[1] == 0)
 		child_1(fd, env, av);
-	waitpid(-1, 0, 0);
+	close(fd[0]);
+	close(fd[1]);
+	waitpid(id[0], 0, 0);
+	waitpid(id[1], 0, 0);
 	return (0);
 }
 
@@ -58,7 +59,7 @@ void	child(int fd[2], char **env, char **av)
 	if (dup2(fd[1], STDOUT_FILENO) == -1)
 	{
 		close(fd[1]);
-		exit(EXIT_SUCCESS);
+		exit(EXIT_FAILURE);
 	}
 	close(fd[1]);
 	do_cmd(fetch_cmd(av[2]), env);
